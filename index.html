@@ -522,7 +522,7 @@ const daysInMonth=(year,month)=>new Date(year,month+1,0).getDate();
 document.title=`جدول متابعة تكتات التكنو - ${monthNames[currentMonth]} ${currentYear}`;
 document.querySelector('header p').textContent=`جدول ${monthNames[currentMonth]} ${currentYear} | التناوب اليومي للموظفين`;
 
-const clockFormatter = new Intl.DateTimeFormat('en-GB', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true, numberingSystem:'latn' });
+const clockFormatter = new Intl.DateTimeFormat('en-GB', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false, numberingSystem:'latn' });
 function updateLocalClock() {
   const localNow = new Date();
   document.getElementById('liveClock').textContent = clockFormatter.format(localNow);
