@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>جدول متابعة تكتات التكنو - نوفمبر 2026</title>
+<title>جدول متابعة تكتات التكنو</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -260,7 +260,7 @@
   <div class="past-toggle-wrap">
     <button class="past-toggle-btn previous-month-toggle" id="previousMonthToggleBtn" onclick="togglePreviousMonth()">
       <span class="toggle-icon">🗓️</span>
-      <span id="previousMonthToggleLabel">عرض أكتوبر (غير محتسب)</span>
+      <span id="previousMonthToggleLabel">عرض الشهر السابق (غير محتسب)</span>
     </button>
     <button class="past-toggle-btn" id="pastToggleBtn" onclick="togglePast()">
       <span class="toggle-icon">🕐</span>
@@ -383,6 +383,14 @@ const dayNames = ['الأحد','الاثنين','الثلاثاء','الأربع
 
 const now   = new Date();
 const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+const monthNames=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const currentYear=today.getFullYear(),currentMonth=today.getMonth();
+const previousMonthDate=new Date(currentYear,currentMonth-1,1);
+const previousYear=previousMonthDate.getFullYear(),previousMonth=previousMonthDate.getMonth();
+const daysInMonth=(year,month)=>new Date(year,month+1,0).getDate();
+document.title=`جدول متابعة تكتات التكنو - ${monthNames[currentMonth]} ${currentYear}`;
+document.querySelector('header p').textContent=`جدول ${monthNames[currentMonth]} ${currentYear} | التناوب اليومي للموظفين`;
+document.getElementById('previousMonthToggleLabel').textContent=`عرض ${monthNames[previousMonth]} (غير محتسب)`;
 
 // المرساة: 1 أغسطس 2026 = سيد أحمد (فهرس 0)، والتناوب مستمر يومياً بلا انقطاع، تُستخدم لحساب أي تاريخ
 const anchorAug = new Date(2026, 7, 1);
@@ -442,26 +450,28 @@ function buildRow(date, day, monthStr, empIdx, isToday, isPast, excludeCount) {
   }
 }
 
-// أكتوبر 2026 كاملًا، مطوي افتراضيًا وغير محتسب في عدّادات الموظفين.
+// الشهر السابق كاملًا، مطوي افتراضيًا وغير محتسب في عدّادات الموظفين.
 const previousMonthSep = document.createElement('tr');
 previousMonthSep.className = 'month-sep previous-month hidden';
 previousMonthSep.dataset.previousMonthSep = '1';
-previousMonthSep.innerHTML='<td colspan="4"><div class="month-sep-line">أكتوبر 2026 — أيام سابقة غير محتسبة</div></td>';
+previousMonthSep.innerHTML=`<td colspan="4"><div class="month-sep-line">${monthNames[previousMonth]} ${previousYear} — أيام سابقة غير محتسبة</div></td>`;
 tbody.appendChild(previousMonthSep);
-for (let day=1;day<=31;day++) {
-  const date = new Date(2026,9,day); // أكتوبر = فهرس الشهر 9
-  buildRow(date, day, '2026/10/', empForDate(date), date.getTime()===today.getTime(), date<today, true);
+const previousMonthPrefix=`${previousYear}/${String(previousMonth+1).padStart(2,'0')}/`;
+for(let day=1;day<=daysInMonth(previousYear,previousMonth);day++){
+  const date=new Date(previousYear,previousMonth,day);
+  buildRow(date,day,previousMonthPrefix,empForDate(date),date.getTime()===today.getTime(),date<today,true);
 }
 const sepTr = document.createElement('tr');
 sepTr.className = 'month-sep';
 sepTr.dataset.sep='1';
-sepTr.innerHTML='<td colspan="4"><div class="month-sep-line">نوفمبر 2026</div></td>';
+sepTr.innerHTML=`<td colspan="4"><div class="month-sep-line">${monthNames[currentMonth]} ${currentYear}</div></td>`;
 tbody.appendChild(sepTr);
 
-// نوفمبر 2026: يستمر التناوب يوميًا وفق تاريخ المرساة في 1 أغسطس.
-for (let day=1;day<=30;day++) {
-  const date = new Date(2026,10,day); // نوفمبر = فهرس الشهر 10
-  buildRow(date, day, '2026/11/', empForDate(date), date.getTime()===today.getTime(), date<today, false);
+// يعرض الشهر الحالي حسب تاريخ الجهاز ويحافظ على تناوب الموظفين المستمر.
+const currentMonthPrefix=`${currentYear}/${String(currentMonth+1).padStart(2,'0')}/`;
+for(let day=1;day<=daysInMonth(currentYear,currentMonth);day++){
+  const date=new Date(currentYear,currentMonth,day);
+  buildRow(date,day,currentMonthPrefix,empForDate(date),date.getTime()===today.getTime(),date<today,false);
 }
 
 function startHintClickAnimation() {
@@ -528,7 +538,7 @@ function togglePreviousMonth(){
   const btn=document.getElementById('previousMonthToggleBtn');
   const lbl=document.getElementById('previousMonthToggleLabel');
   btn.classList.toggle('showing',showPreviousMonth);
-  lbl.textContent=showPreviousMonth?'إخفاء أكتوبر السابق':'عرض أكتوبر (غير محتسب)';
+  lbl.textContent=showPreviousMonth?`إخفاء ${monthNames[previousMonth]} السابق`:`عرض ${monthNames[previousMonth]} (غير محتسب)`;
   document.querySelectorAll('#tableBody tr.previous-month').forEach((tr,i)=>{
     if(tr.classList.contains('month-sep')){tr.classList.toggle('hidden',!showPreviousMonth);return;}
     const match=activeFilter===-1||+tr.dataset.emp===activeFilter;
