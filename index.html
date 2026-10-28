@@ -152,7 +152,9 @@
   @keyframes row-in { from{opacity:0;transform:translateX(14px)} to{opacity:1;transform:translateX(0)} }
   tbody tr { animation: row-in 0.35s ease both; }
 
-  .past-toggle-wrap { display:flex;justify-content:center;margin-bottom:18px }
+  .past-toggle-wrap { display:flex;justify-content:center;flex-wrap:wrap;gap:9px;margin-bottom:18px }
+  .previous-month-toggle{border-color:#00d4ff35;color:#8deaff}
+  .previous-month-toggle.showing{border-color:#00d4ff88;color:#b6f2ff;background:#00d4ff12}
   .past-toggle-btn { display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid #ffffff18;border-radius:40px;padding:9px 22px;font-size:0.86rem;font-family:'Cairo',sans-serif;font-weight:700;color:var(--muted);cursor:pointer;transition:all 0.25s }
   .past-toggle-btn:hover { border-color:#ffffff35;color:var(--text);transform:translateY(-2px);box-shadow:0 6px 20px #00000040 }
   .past-toggle-btn.showing { border-color:#f87171aa;color:#fca5a5;background:#7f1d1d22 }
@@ -256,6 +258,10 @@
 <div class="month-view" id="monthView">
   <div class="filters" id="filters"></div>
   <div class="past-toggle-wrap">
+    <button class="past-toggle-btn previous-month-toggle" id="previousMonthToggleBtn" onclick="togglePreviousMonth()">
+      <span class="toggle-icon">🗓️</span>
+      <span id="previousMonthToggleLabel">عرض أكتوبر (غير محتسب)</span>
+    </button>
     <button class="past-toggle-btn" id="pastToggleBtn" onclick="togglePast()">
       <span class="toggle-icon">🕐</span>
       <span id="pastToggleLabel">عرض الأيام السابقة</span>
@@ -394,7 +400,7 @@ function buildRow(date, day, monthStr, empIdx, isToday, isPast, excludeCount) {
   if (isToday) {
     const wrapper = document.createElement('tr');
     wrapper.dataset.emp = empIdx; wrapper.dataset.day = day;
-    if (excludeCount) wrapper.dataset.excludeCount = '1';
+    if (excludeCount) { wrapper.dataset.excludeCount = '1'; wrapper.classList.add('previous-month','hidden'); }
     wrapper.classList.add('today');
     const tdWrap = document.createElement('td');
     tdWrap.colSpan = 4;
@@ -420,7 +426,7 @@ function buildRow(date, day, monthStr, empIdx, isToday, isPast, excludeCount) {
   } else {
     const tr = document.createElement('tr');
     tr.dataset.emp = empIdx; tr.dataset.day = day;
-    if (excludeCount) tr.dataset.excludeCount = '1';
+    if (excludeCount) { tr.dataset.excludeCount = '1'; tr.classList.add('previous-month','hidden'); }
     if (isPast) { tr.classList.add('hidden'); tr.classList.add('past'); }
     tr.style.cursor = 'pointer';
     tr.onclick = () => window.open('https://teknocore.qi.iq','_blank');
@@ -436,11 +442,16 @@ function buildRow(date, day, monthStr, empIdx, isToday, isPast, excludeCount) {
   }
 }
 
-// أبقينا يومي 30 و31 أكتوبر (بلا احتساب في عدّاد الفلاتر) قبل بداية نوفمبر
-[30,31].forEach(day => {
+// أكتوبر 2026 كاملًا، مطوي افتراضيًا وغير محتسب في عدّادات الموظفين.
+const previousMonthSep = document.createElement('tr');
+previousMonthSep.className = 'month-sep previous-month hidden';
+previousMonthSep.dataset.previousMonthSep = '1';
+previousMonthSep.innerHTML='<td colspan="4"><div class="month-sep-line">أكتوبر 2026 — أيام سابقة غير محتسبة</div></td>';
+tbody.appendChild(previousMonthSep);
+for (let day=1;day<=31;day++) {
   const date = new Date(2026,9,day); // أكتوبر = فهرس الشهر 9
   buildRow(date, day, '2026/10/', empForDate(date), date.getTime()===today.getTime(), date<today, true);
-});
+}
 const sepTr = document.createElement('tr');
 sepTr.className = 'month-sep';
 sepTr.dataset.sep='1';
@@ -503,11 +514,29 @@ function setFilter(idx,clickedBtn){
   let visible=0;
   document.querySelectorAll('#tableBody tr:not(.month-sep)').forEach(tr=>{
     const isPast=tr.classList.contains('past');
+    const isPreviousMonth=tr.classList.contains('previous-month');
     const match=idx===-1||+tr.dataset.emp===idx;
-    const show=match&&(!isPast||showPast);
+    const show=match&&(isPreviousMonth?showPreviousMonth:(!isPast||showPast));
     tr.classList.toggle('hidden',!show);
     if(show) visible++;
   });
+  document.getElementById('emptyMsg').style.display=visible===0?'block':'none';
+}
+let showPreviousMonth=false;
+function togglePreviousMonth(){
+  showPreviousMonth=!showPreviousMonth;
+  const btn=document.getElementById('previousMonthToggleBtn');
+  const lbl=document.getElementById('previousMonthToggleLabel');
+  btn.classList.toggle('showing',showPreviousMonth);
+  lbl.textContent=showPreviousMonth?'إخفاء أكتوبر السابق':'عرض أكتوبر (غير محتسب)';
+  document.querySelectorAll('#tableBody tr.previous-month').forEach((tr,i)=>{
+    if(tr.classList.contains('month-sep')){tr.classList.toggle('hidden',!showPreviousMonth);return;}
+    const match=activeFilter===-1||+tr.dataset.emp===activeFilter;
+    const show=showPreviousMonth&&match;
+    tr.classList.toggle('hidden',!show);
+    if(show){tr.classList.add('revealed');tr.style.animationDelay=(i*0.025)+'s';setTimeout(()=>tr.classList.remove('revealed'),600);}
+  });
+  const visible=[...document.querySelectorAll('#tableBody tr:not(.month-sep)')].filter(tr=>!tr.classList.contains('hidden')).length;
   document.getElementById('emptyMsg').style.display=visible===0?'block':'none';
 }
 let showPast=false;
@@ -517,14 +546,14 @@ function togglePast(){
   const lbl=document.getElementById('pastToggleLabel');
   if(showPast){
     btn.classList.add('showing'); lbl.textContent='إخفاء الأيام السابقة';
-    document.querySelectorAll('#tableBody tr.past').forEach((tr,i)=>{
+    document.querySelectorAll('#tableBody tr.past:not(.previous-month)').forEach((tr,i)=>{
       const isSep=tr.dataset.sep==='1';
       const match=isSep||activeFilter===-1||+tr.dataset.emp===activeFilter;
       if(match){ tr.classList.remove('hidden'); tr.classList.add('revealed'); tr.style.animationDelay=(i*0.04)+'s'; setTimeout(()=>tr.classList.remove('revealed'),600); }
     });
   } else {
     btn.classList.remove('showing'); lbl.textContent='عرض الأيام السابقة';
-    document.querySelectorAll('#tableBody tr.past').forEach(tr=>tr.classList.add('hidden'));
+    document.querySelectorAll('#tableBody tr.past:not(.previous-month)').forEach(tr=>tr.classList.add('hidden'));
   }
 }
 
