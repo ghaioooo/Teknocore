@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>جدول متابعة تكتات التكنو - أكتوبر 2026</title>
+<title>جدول متابعة تكتات التكنو - نوفمبر 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -249,7 +249,7 @@
 
 <header>
   <h1>جدول متابعة تكتات التكنو 📋 </h1>
-  <p> الشهر العاشر - 2026 | التناوب اليومي للموظفين</p>
+  <p> الشهر الحادي عشر - 2026 | التناوب اليومي للموظفين</p>
 </header>
 
 <!-- وضع الشهر -->
@@ -436,21 +436,21 @@ function buildRow(date, day, monthStr, empIdx, isToday, isPast, excludeCount) {
   }
 }
 
-// أبقينا يومي 29 و30 سبتمبر (بلا احتساب في عدّاد الفلاتر) قبل بداية أكتوبر
-[29,30].forEach(day => {
-  const date = new Date(2026,8,day); // سبتمبر = فهرس الشهر 8
-  buildRow(date, day, '2026/09/', empForDate(date), date.getTime()===today.getTime(), date<today, true);
+// أبقينا يومي 30 و31 أكتوبر (بلا احتساب في عدّاد الفلاتر) قبل بداية نوفمبر
+[30,31].forEach(day => {
+  const date = new Date(2026,9,day); // أكتوبر = فهرس الشهر 9
+  buildRow(date, day, '2026/10/', empForDate(date), date.getTime()===today.getTime(), date<today, true);
 });
 const sepTr = document.createElement('tr');
 sepTr.className = 'month-sep';
 sepTr.dataset.sep='1';
-sepTr.innerHTML='<td colspan="4"><div class="month-sep-line">أكتوبر 2026</div></td>';
+sepTr.innerHTML='<td colspan="4"><div class="month-sep-line">نوفمبر 2026</div></td>';
 tbody.appendChild(sepTr);
 
-// أكتوبر: يبدأ يوم 1 بغسان واثق (فهرس 1)، ثم يستمر بنفس ترتيب مصفوفة employees
-for (let day=1;day<=31;day++) {
-  const date = new Date(2026,9,day); // أكتوبر = فهرس الشهر 9
-  buildRow(date, day, '2026/10/', empForDate(date), date.getTime()===today.getTime(), date<today, false);
+// نوفمبر 2026: يستمر التناوب يوميًا وفق تاريخ المرساة في 1 أغسطس.
+for (let day=1;day<=30;day++) {
+  const date = new Date(2026,10,day); // نوفمبر = فهرس الشهر 10
+  buildRow(date, day, '2026/11/', empForDate(date), date.getTime()===today.getTime(), date<today, false);
 }
 
 function startHintClickAnimation() {
