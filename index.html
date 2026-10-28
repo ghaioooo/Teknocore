@@ -566,7 +566,6 @@ weatherButton.addEventListener('click', () => {
     weatherButton.disabled = false;
   }, { enableHighAccuracy:false, timeout:10000, maximumAge:900000 });
 });
-document.getElementById('previousMonthToggleLabel').textContent=`عرض ${monthNames[previousMonth]} (غير محتسب)`;
 
 // المرساة: 1 أغسطس 2026 = سيد أحمد (فهرس 0)، والتناوب مستمر يومياً بلا انقطاع، تُستخدم لحساب أي تاريخ
 const anchorAug = new Date(2026, 7, 1);
@@ -709,22 +708,6 @@ function setFilter(idx,clickedBtn){
   document.getElementById('emptyMsg').style.display=visible===0?'block':'none';
 }
 let showPreviousMonth=false;
-function togglePreviousMonth(){
-  showPreviousMonth=!showPreviousMonth;
-  const btn=document.getElementById('previousMonthToggleBtn');
-  const lbl=document.getElementById('previousMonthToggleLabel');
-  btn.classList.toggle('showing',showPreviousMonth);
-  lbl.textContent=showPreviousMonth?`إخفاء ${monthNames[previousMonth]} السابق`:`عرض ${monthNames[previousMonth]} (غير محتسب)`;
-  document.querySelectorAll('#tableBody tr.previous-month').forEach((tr,i)=>{
-    if(tr.classList.contains('month-sep')){tr.classList.toggle('hidden',!showPreviousMonth);return;}
-    const match=activeFilter===-1||+tr.dataset.emp===activeFilter;
-    const show=showPreviousMonth&&match;
-    tr.classList.toggle('hidden',!show);
-    if(show){tr.classList.add('revealed');tr.style.animationDelay=(i*0.025)+'s';setTimeout(()=>tr.classList.remove('revealed'),600);}
-  });
-  const visible=[...document.querySelectorAll('#tableBody tr:not(.month-sep)')].filter(tr=>!tr.classList.contains('hidden')).length;
-  document.getElementById('emptyMsg').style.display=visible===0?'block':'none';
-}
 let showPast=false;
 function togglePast(){
   showPast=!showPast;
